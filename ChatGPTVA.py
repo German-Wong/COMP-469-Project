@@ -37,7 +37,7 @@ def record_text():
     Returns:
     str: Recognized text from speech.
     """
-    while True:  # Infinite loop to continuously listen to speech
+    while(1):  # Infinite loop to continuously listen to speech
         try:
             # Use the default microphone as the audio source
             with sr.Microphone() as source2:
@@ -65,14 +65,12 @@ def send_to_chatGPT(messages, model="gpt-3.5-turbo"):
     """
     Function to send messages to the OpenAI API and get a response.
     Args:
-    messages (list): List of previous interactions/messages.
-    model (str): Specifies which GPT model to use.
-
+        messages (list): List of previous interactions/messages.
+        model (str): Specifies which GPT model to use.
     Returns:
-    str: Response from GPT model.
+        str: Response from GPT model.
     """
-    # Send the messages to the OpenAI API for processing
-    response = openai.ChatCompletion.create(
+    response = openai.chat.completions.create(
         model=model,
         messages=messages,
         max_tokens=100,
@@ -81,19 +79,17 @@ def send_to_chatGPT(messages, model="gpt-3.5-turbo"):
         temperature=0.5,
     )
 
-    # Extract the response message
     message = response.choices[0].message.content
-    messages.append(response.choices[0].message)  # Append the response to messages
+    messages.append(response.choices[0].message)
     return message
 
-# Starting conversation with a predefined message
-messages = [{"role": "user", "content": "Please act like Jarvis from Iron man. From now on your name is Jarvis"}]
+messages = []
+while(1):
+    text = record_text()
+    messages.append({"role": "user", "content": text})
+    print(text)
+    response = send_to_chatGPT(messages)
+    print(response)
+    SpeakText(response)
 
-# Main loop to keep the program running
-while True:
-    text = record_text()  # Record and convert speech to text
-    messages.append({"role": "user", "content": text})  # Append the new text to messages
-    response = send_to_chatGPT(messages)  # Get response from OpenAI GPT
-    SpeakText(response)  # Speak out the response
-
-    print(response)  # Print the response
+    

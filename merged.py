@@ -53,7 +53,7 @@ def send_to_chatGPT(messages, model="gpt-3.5-turbo"):
     Returns:
         str: Response from GPT model.
     """
-    response = openai.ChatCompletion.create(
+    response = openai.chat.completions.create(
         model=model,
         messages=messages,
         max_tokens=150
