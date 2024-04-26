@@ -64,37 +64,40 @@ class AnimatedGIFViewer:
 
     def process_user_input(self):
         global selected_voice_path  # Access the global variable
-        # Record the user's speech input
-        text = record_text()
+        try:
+            # Record the user's speech input
+            text = record_text()
 
-        if text is not None:
-            # Append the user's input to the conversation history
-            self.messages.append({"role": "user", "content": text})
-            print(text)
+            if text is not None:
+                # Append the user's input to the conversation history
+                self.messages.append({"role": "user", "content": text})
+                print(text)
 
-            # Check if the user's input contains variations of queries about the assistant's name or what "ARIA" stands for
-            if any(keyword in text.lower() for keyword in ["what's your name", "your name", "who are you"]):
-                response = "My name is ARIA, which stands for Artificial Response and Interactive Assistant."
-            elif any(keyword in text.lower() for keyword in ["what does aria stand for", "what does that stand for", "what's that stand for", "aria stands for"]):
-                response = "ARIA stands for Artificial Response and Interactive Assistant."
-            elif any(keyword in text.lower() for keyword in ["how are you", "how's it going"]):
-                response = "Same as always. Ready to assist you, sir."
+                # Check if the user's input contains variations of queries about the assistant's name or what "ARIA" stands for
+                if any(keyword in text.lower() for keyword in ["what's your name", "your name", "who are you"]):
+                    response = "My name is ARIA, which stands for Artificial Response and Interactive Assistant."
+                elif any(keyword in text.lower() for keyword in ["what does aria stand for", "what does that stand for", "what's that stand for", "aria stands for"]):
+                    response = "ARIA stands for Artificial Response and Interactive Assistant."
+                elif any(keyword in text.lower() for keyword in ["how are you", "how's it going"]):
+                    response = "Same as always. Ready to assist you, sir."
+                else:
+                    # Get response from ChatGPT for other queries
+                    response = send_to_chatGPT(self.messages)
+                
+                print(response)
+
+                # Speak the response
+                SpeakText(response)
+
             else:
-                # Get response from ChatGPT for other queries
-                response = send_to_chatGPT(self.messages)
-            
-            print(response)
+                if selected_voice_path == voices["English (UK)"] or selected_voice_path == voices["English (US)"] or not selected_voice_path:
+                    SpeakText("Goodbye now.")
+                elif selected_voice_path == voices["Spanish (ES)"] or selected_voice_path == voices["Spanish (MX)"]:
+                    SpeakText("Adiós.")
+                self.stop_listening = True
 
-            # Speak the response
-            SpeakText(response)
-
-        elif text is None:
-            
-            if selected_voice_path == voices["English (UK)"] or selected_voice_path == voices["English (US)"] or not selected_voice_path:
-                SpeakText("Goodbye now.")
-            elif selected_voice_path == voices["Spanish (ES)"] or selected_voice_path == voices["Spanish (MX)"]:
-                SpeakText("Adiós.")
-            self.stop_listening = True
+        except sr.UnknownValueError:
+            print("No discernible speech detected.")
 
      # END CLASS ANIMATEDGIFVIEWER
 
