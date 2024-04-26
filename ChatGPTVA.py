@@ -87,7 +87,8 @@ class AnimatedGIFViewer:
             SpeakText(response)
 
         elif text is None:
-            if selected_voice_path == voices["English (UK)"] or selected_voice_path == voices["English (US)"]:
+            
+            if selected_voice_path == voices["English (UK)"] or selected_voice_path == voices["English (US)"] or not selected_voice_path:
                 SpeakText("Goodbye now.")
             elif selected_voice_path == voices["Spanish (ES)"] or selected_voice_path == voices["Spanish (MX)"]:
                 SpeakText("Adiós.")
@@ -109,11 +110,14 @@ def SpeakText(command):
     engine = pyttsx3.init()
     if selected_voice_path:
         engine.setProperty('voice', selected_voice_path)
+    # If no voice is selected, default to English (UK)
+    elif not selected_voice_path:
+        engine.setProperty('voice', voices["English (US)"])
     engine.say(command)
     engine.runAndWait()
 
 
-def record_text(stop_phrases=["Thanks ARIA", "Gracias ARIA", "Gracias area", "Adios", "Goodbye", "See you", "Bye", "You're dismissed", "That's enough", "Exit", "Quit"]):
+def record_text(stop_phrases=["That will do", "That'll do", "Adios", "Goodbye", "See you", "Bye", "You're dismissed", "You are dismissed", "That's enough", "Exit", "Quit"]):
     r = sr.Recognizer()
     with sr.Microphone() as source:
         r.adjust_for_ambient_noise(source, duration=0.2)
@@ -200,9 +204,13 @@ def main():
 def change_voice():
     global voices, engine, selected_voice_path
     selected_voice_name = voice_menu.get()
+    
     selected_voice_path = voices[selected_voice_name]
     engine = pyttsx3.init()  # Reinitialize the engine with the new voice
     engine.setProperty('voice', selected_voice_path)
+    # If no voice is selected, default to English (UK)
+    if not selected_voice_path:
+        engine.setProperty('voice', voices["English (US)"])
     if selected_voice_name == "Spanish (ES)" or selected_voice_name == "Spanish (MX)":
         engine.say("Español")
     elif selected_voice_name == "English (UK)" or selected_voice_name == "English (US)":
