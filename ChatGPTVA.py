@@ -17,21 +17,41 @@ import openai
 openai.api_key = OPENAI_KEY
 
 # Function to convert text to speech
-def SpeakText(command):
+def SpeakText(command, lang = "usenglishf"):
     """
     Function to speak out the given text using the text-to-speech engine.
     Args:
     command (str): Text that needs to be spoken.
+    gender (str): Gender of the voice ("male" or "female").
     """
     # Initialize the text-to-speech engine
     engine = pyttsx3.init()
+
+    voices = engine.getProperty('voices')
+    for voice in voices:
+        print(voice.name)
+
+    # Set the gender of the voice when initializing the engine
+    if lang == "usenglishf":
+        engine.setProperty('voice', 'HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Speech\Voices\Tokens\TTS_MS_EN-US_ZIRA_11.0')
+    elif lang == "usenglishm":
+        engine.setProperty('voice', 'HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Speech\Voices\Tokens\TTS_MS_EN-US_DAVID_11.0')    
+    elif lang == "gbenglish":
+        engine.setProperty('voice', 'HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Speech\Voices\Tokens\TTS_MS_EN-GB_HAZEL_11.0')
+    elif lang == "esspanish":
+        engine.setProperty('voice', 'HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Speech\Voices\Tokens\TTS_MS_ES-ES_HELENA_11.0')
+    elif lang == "mxspanish":
+        engine.setProperty('voice', 'HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Speech\Voices\Tokens\TTS_MS_ES-MX_SABINA_11.0')
+    
+
     engine.say(command)  # Pass the text to be spoken
     engine.runAndWait()  # Process and play the audio
+
 
 # Initialize the recognizer for speech recognition
 r = sr.Recognizer()
 
-def record_text():
+def record_text(stop_phrases=["Thanks ARIA", "Goodbye", "See you", "Bye", "You're dismissed", "That's enough", "Exit", "Quit"]):
     """
     Function to record speech from the microphone and convert it to text.
     Returns:
@@ -51,6 +71,13 @@ def record_text():
 
                 # Use Google's speech recognition
                 MyText = r.recognize_google(audio2)
+            
+                # Check if any of the stop phrases are detected
+                for phrase in stop_phrases:
+                    if phrase.lower() in MyText.lower():
+                        print(f"Stopping listening. Detected stop phrase: {phrase}")
+                        return None  # Return None to indicate stopping
+
                 return MyText  # Return the recognized text
 
         except sr.RequestError as e:
@@ -60,6 +87,7 @@ def record_text():
         except sr.UnknownValueError:
             # Handle cases where the recognizer could not understand the speech
             print("unknown error occurred")
+            break
 
 def send_to_chatGPT(messages, model="gpt-3.5-turbo"):
     """
@@ -86,10 +114,13 @@ def send_to_chatGPT(messages, model="gpt-3.5-turbo"):
 messages = []
 while(1):
     text = record_text()
+    if text is None:
+        SpeakText("Goodbye now.", lang = "usenglishm")
     messages.append({"role": "user", "content": text})
     print(text)
     response = send_to_chatGPT(messages)
     print(response)
-    SpeakText(response)
+    SpeakText(response, lang = "usenglishf")
+    
 
     
