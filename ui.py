@@ -1,50 +1,50 @@
 import tkinter as tk
-from PIL import Image, ImageTk
-import os
+from tkinter import ttk
+import pyttsx3
 
-class AnimatedGIFViewer:
-    def __init__(self, master, gif_folder):
-        self.master = master
-        self.gif_folder = gif_folder
-        self.images = []
-        self.current_frame = 0
-
-        # Load GIF images from folder
-        self.load_images()
-
-        # Display the first frame
-        self.display_frame()
-
-    def load_images(self):
-        # Load GIF images from folder
-        for filename in sorted(os.listdir(self.gif_folder)):
-            if filename.endswith(".png"):  # Change extension if needed
-                image = Image.open(os.path.join(self.gif_folder, filename))
-                self.images.append(ImageTk.PhotoImage(image))
-
-    def display_frame(self):
-        # Display current frame
-        if self.images:
-            self.image_label = tk.Label(self.master, image=self.images[self.current_frame])
-            self.image_label.pack()
-
-    def update_frame(self):
-        # Update to the next frame
-        self.current_frame = (self.current_frame + 1) % len(self.images)
-        self.image_label.configure(image=self.images[self.current_frame])
-        self.master.after(20, self.update_frame)  # Change delay as needed
+def change_voice():
+    selected_voice = voice_menu.get()
+    engine.setProperty('voice', selected_voice)
+    engine.say("Voice changed to " + selected_voice)
+    engine.runAndWait()
 
 def main():
+    # Initialize Tkinter window
     root = tk.Tk()
-    root.title("Animated GIF Viewer")
+    root.title("ARIA: Voice Selection")
+    root.geometry("300x150")  # Set window size
 
-    # Path to the folder containing the GIF images
-    gif_folder = r"C:\Users\averg\Downloads\ARIA"
+    # Define available voices
+    voices = ["HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Speech\Voices\Tokens\TTS_MS_EN-US_ZIRA_11.0",
+              "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Speech\Voices\Tokens\TTS_MS_EN-US_DAVID_11.0",
+              "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Speech\Voices\Tokens\TTS_MS_EN-GB_HAZEL_11.0",
+              "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Speech\Voices\Tokens\TTS_MS_ES-ES_HELENA_11.0",
+              "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Speech\Voices\Tokens\TTS_MS_ES-MX_SABINA_11.0"]
 
-    # Create and run the AnimatedGIFViewer
-    gif_viewer = AnimatedGIFViewer(root, gif_folder)
-    gif_viewer.update_frame()
+    # Initialize pyttsx3 engine
+    global engine
+    engine = pyttsx3.init()
 
+    # Create a frame
+    frame = ttk.Frame(root, padding="20")
+    frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
+
+    # Create a label
+    label = ttk.Label(frame, text="Select Voice:")
+    label.grid(row=0, column=0, padx=5, pady=5)
+
+    # Create dropdown menu for voice selection
+    selected_voice = tk.StringVar(root)
+    selected_voice.set(voices[0])  # Set default voice
+    global voice_menu
+    voice_menu = ttk.Combobox(frame, textvariable=selected_voice, values=voices, state="readonly")
+    voice_menu.grid(row=0, column=1, padx=5, pady=5)
+
+    # Create button to apply selected voice
+    apply_button = ttk.Button(frame, text="Apply", command=change_voice)
+    apply_button.grid(row=1, column=0, columnspan=2, pady=10)
+
+    # Run the Tkinter event loop
     root.mainloop()
 
 if __name__ == "__main__":

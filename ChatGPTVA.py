@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import ttk
 from PIL import Image, ImageTk
 import os
 import speech_recognition as sr
@@ -11,6 +12,9 @@ import threading
 load_dotenv()
 OPENAI_KEY = os.getenv('OPENAI_KEY')
 openai.api_key = OPENAI_KEY
+
+# Global variable to store selected voice path
+selected_voice_path = None
 
 class AnimatedGIFViewer:
     def __init__(self, master, gif_folder):
@@ -59,6 +63,7 @@ class AnimatedGIFViewer:
         self.thread.start()
 
     def process_user_input(self):
+        global selected_voice_path  # Access the global variable
         # Record the user's speech input
         text = record_text()
 
@@ -67,16 +72,28 @@ class AnimatedGIFViewer:
             self.messages.append({"role": "user", "content": text})
             print(text)
 
-            # Get response from ChatGPT
-            response = send_to_chatGPT(self.messages)
+            # Check if the user's input contains variations of queries about the assistant's name or what "ARIA" stands for
+            if any(keyword in text.lower() for keyword in ["what's your name", "your name", "who are you"]):
+                response = "My name is ARIA, which stands for Artificial Response and Interactive Assistant."
+            elif any(keyword in text.lower() for keyword in ["what does aria stand for", "aria stands for"]):
+                response = "ARIA stands for Artificial Response and Interactive Assistant."
+            else:
+                # Get response from ChatGPT for other queries
+                response = send_to_chatGPT(self.messages)
+            
             print(response)
 
             # Speak the response
             SpeakText(response)
 
         elif text is None:
-            SpeakText("Goodbye now.", lang = "usenglishf")
+            if selected_voice_path == voices["English (UK)"] or selected_voice_path == voices["English (US)"]:
+                SpeakText("Goodbye now.")
+            elif selected_voice_path == voices["Spanish (ES)"] or selected_voice_path == voices["Spanish (MX)"]:
+                SpeakText("Adiós.")
             self.stop_listening = True
+
+
 
     def listen_for_voice_input(self):
         while not self.stop_listening:
@@ -87,23 +104,16 @@ class AnimatedGIFViewer:
         if self.thread is not None:
             self.thread.join()
 
-
-def SpeakText(command, lang="usenglishf"):
+def SpeakText(command):
+    global selected_voice_path  # Access the global variable
     engine = pyttsx3.init()
-    if lang == "usenglishf":
-        engine.setProperty('voice', 'HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Speech\Voices\Tokens\TTS_MS_EN-US_ZIRA_11.0')
-    elif lang == "usenglishm":
-        engine.setProperty('voice', 'HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Speech\Voices\Tokens\TTS_MS_EN-US_DAVID_11.0')    
-    elif lang == "gbenglish":
-        engine.setProperty('voice', 'HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Speech\Voices\Tokens\TTS_MS_EN-GB_HAZEL_11.0')
-    elif lang == "esspanish":
-        engine.setProperty('voice', 'HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Speech\Voices\Tokens\TTS_MS_ES-ES_HELENA_11.0')
-    elif lang == "mxspanish":
-        engine.setProperty('voice', 'HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Speech\Voices\Tokens\TTS_MS_ES-MX_SABINA_11.0')
+    if selected_voice_path:
+        engine.setProperty('voice', selected_voice_path)
     engine.say(command)
     engine.runAndWait()
 
-def record_text(stop_phrases=["Thanks ARIA", "Goodbye", "See you", "Bye", "You're dismissed", "That's enough", "Exit", "Quit"]):
+
+def record_text(stop_phrases=["Thanks ARIA", "Gracias ARIA", "Gracias area", "Adios", "Goodbye", "See you", "Bye", "You're dismissed", "That's enough", "Exit", "Quit"]):
     r = sr.Recognizer()
     with sr.Microphone() as source:
         r.adjust_for_ambient_noise(source, duration=0.2)
@@ -126,14 +136,29 @@ def send_to_chatGPT(messages, model="gpt-3.5-turbo"):
         temperature=0.5,
     )
     message = response.choices[0].message.content
+
+    # Check if the response contains the phrase you want to replace
+    phrase_to_replace = ["I am a language model called GPT-3", "a virtual assistant", "a language model AI", "an AI chatbot", "Mi nombre es Assistant"]
+    replacement_phrase = ["I am a virtual assistant known as ARIA.", "a virtual assistant known as ARIA", "a virtual assistant known as ARIA", "a virtual assistant known as ARIA", "Mi nombre es ARIA"]
+
+    for phrase, replacement in zip(phrase_to_replace, replacement_phrase):
+        if phrase in message:
+            message = message.replace(phrase, replacement)
+        
     messages.append(response.choices[0].message)
     return message
+
+# Define available voices
+voices = {
+    "English (US)": r"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Speech\Voices\Tokens\TTS_MS_EN-US_ZIRA_11.0",
+    "English (UK)": r"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Speech\Voices\Tokens\TTS_MS_EN-GB_HAZEL_11.0",
+    "Spanish (ES)": r"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Speech\Voices\Tokens\TTS_MS_ES-ES_HELENA_11.0",
+    "Spanish (MX)": r"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Speech\Voices\Tokens\TTS_MS_ES-MX_SABINA_11.0"
+}
 
 def main():
     root = tk.Tk()
     root.title("ARIA: Artificial Response and Interactive Assistant")
-
-
 
     # Path to the folder containing the GIF images
     gif_folder = r"C:\Users\averg\Downloads\ARIA"
@@ -142,7 +167,47 @@ def main():
     gif_viewer = AnimatedGIFViewer(root, gif_folder)
     gif_viewer.update_frame()
 
+    # Initialize Tkinter window for voice selection
+    voice_window = tk.Toplevel(root)
+    voice_window.title("ARIA: Voice Selection")
+    voice_window.geometry("300x150")  # Set window size
+
+    # Initialize pyttsx3 engine
+    global engine
+    engine = pyttsx3.init()
+
+    # Create a frame
+    frame = ttk.Frame(voice_window, padding="20")
+    frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
+
+    # Create a label
+    label = ttk.Label(frame, text="Select Voice:")
+    label.grid(row=0, column=0, padx=5, pady=5)
+
+    # Create dropdown menu for voice selection
+    selected_voice = tk.StringVar(voice_window)
+    selected_voice.set("English (US)")  # Set default voice
+    global voice_menu
+    voice_menu = ttk.Combobox(frame, textvariable=selected_voice, values=list(voices.keys()), state="readonly")
+    voice_menu.grid(row=0, column=1, padx=5, pady=5)
+
+    # Create button to apply selected voice
+    apply_button = ttk.Button(frame, text="Apply", command=change_voice)
+    apply_button.grid(row=1, column=0, columnspan=2, pady=10)
+
     root.mainloop()
+
+def change_voice():
+    global voices, engine, selected_voice_path
+    selected_voice_name = voice_menu.get()
+    selected_voice_path = voices[selected_voice_name]
+    engine = pyttsx3.init()  # Reinitialize the engine with the new voice
+    engine.setProperty('voice', selected_voice_path)
+    if selected_voice_name == "Spanish (ES)" or selected_voice_name == "Spanish (MX)":
+        engine.say("Español")
+    elif selected_voice_name == "English (UK)" or selected_voice_name == "English (US)":
+        engine.say("English")
+    engine.runAndWait()
 
 if __name__ == "__main__":
     main()
