@@ -147,8 +147,8 @@ def send_to_chatGPT(messages, model="gpt-3.5-turbo"):
     message = response.choices[0].message.content
 
     # Check if the response contains the phrase you want to replace
-    phrase_to_replace = ["I am a language model called GPT-3", "a virtual assistant", "created by OpenAI", "a language model AI", "an AI chatbot", "physical form or a name", "call me Assistant", "Mi nombre es Assistant", "Mi nombre es Asistente"]
-    replacement_phrase = ["I am a virtual assistant known as ARIA.", "a virtual assistant known as ARIA", "developed using OpenAI", "a virtual assistant known as ARIA", "a virtual assistant known as ARIA", "physical form", "call me ARIA", "Mi nombre es ARIA", "Mi nombre es ARIA"]
+    phrase_to_replace = ["I am a language model called GPT-3", "a virtual assistant", "created by OpenAI", "a language model AI", "an AI chatbot", "physical form or a name", "call me Assistant", "My name is Assistant", "Mi nombre es Assistant", "Mi nombre es Asistente"]
+    replacement_phrase = ["I am a virtual assistant known as ARIA.", "a virtual assistant known as ARIA", "developed using OpenAI", "a virtual assistant known as ARIA", "a virtual assistant known as ARIA", "physical form", "call me ARIA", "My name is ARIA", "Mi nombre es ARIA", "Mi nombre es ARIA"]
 
     for phrase, replacement in zip(phrase_to_replace, replacement_phrase):
         if phrase in message:
