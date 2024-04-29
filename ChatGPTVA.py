@@ -1,7 +1,7 @@
 import tkinter as tk # tkinter for UI 
 from tkinter import ttk
 from PIL import Image, ImageTk # PIL (Pillow) for GIF animation
-import os   # for accessing files (GIF folder and OpenAI key)
+import os   # for accessing files (GIF folder)
 import speech_recognition as sr # speech recognition lib
 import pyttsx3 # text-to-speech lib
 import openai # openAI API 
