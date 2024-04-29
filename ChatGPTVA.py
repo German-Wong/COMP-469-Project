@@ -187,7 +187,7 @@ def main():
     root.title("ARIA: Artificial Response and Interactive Assistant")
 
     # Path to the folder containing the GIF images
-    gif_folder = r"C:\Users\averg\Downloads\ARIA"
+    gif_folder = r"./ARIA"
 
     # Create and run the AnimatedGIFViewer
     global gif_viewer 
